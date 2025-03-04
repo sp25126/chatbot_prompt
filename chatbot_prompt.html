@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Content Creator AI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --accent-color: #8b5cf6;
+        --accent-light: #c4b5fd;
+        --accent-dark: #6d28d9;
+        --bg-color: #f9fafb;
+        --text-color: #1f2937;
+        --border-color: #e5e7eb;
+        --secondary-bg: #ffffff;
+        --gradient-start: rgba(139, 92, 246, 0.1);
+        --gradient-end: rgba(139, 92, 246, 0.05);
+        --light-border-gradient: linear-gradient(144deg, #c4b5fd, #8b5cf6 50%, #d8b4fe);
+      }
+
+      [data-theme="dark"] {
+        --bg-color: #1f2937;
+        --text-color: #f3f4f6;
+        --border-color: #374151;
+        --secondary-bg: #374151;
+        --gradient-start: rgba(55, 65, 81, 0.8);
+        --gradient-end: rgba(55, 65, 81, 0.3);
+      }
+
+      [data-mode="portfolio"] {
+        --accent-color: #8b5cf6;
+        --accent-light: #c4b5fd;
+        --accent-dark: #6d28d9;
+        --gradient-start: rgba(139, 92, 246, 0.1);
+        --gradient-end: rgba(139, 92, 246, 0.05);
+        --light-border-gradient: linear-gradient(144deg, #c4b5fd, #8b5cf6 50%, #d8b4fe);
+        --dark-border-gradient: linear-gradient(144deg, #af40ff, #5b42f3 50%, #00ddeb);
+      }
+
+      [data-mode="resume"] {
+        --accent-color: #10b981;
+        --accent-light: #6ee7b7;
+        --accent-dark: #047857;
+        --gradient-start: rgba(16, 185, 129, 0.1);
+        --gradient-end: rgba(16, 185, 129, 0.05);
+        --light-border-gradient: linear-gradient(144deg, #6ee7b7, #10b981 50%, #a7f3d0);
+        --dark-border-gradient: linear-gradient(144deg, #10b981, #047857 50%, #6ee7b7);
+      }
+
+      [data-mode="cover-letter"] {
+        --accent-color: #f59e0b;
+        --accent-light: #fcd34d;
+        --accent-dark: #b45309;
+        --gradient-start: rgba(245, 158, 11, 0.1);
+        --gradient-end: rgba(245, 158, 11, 0.05);
+        --light-border-gradient: linear-gradient(144deg, #fcd34d, #f59e0b 50%, #fed7aa);
+        --dark-border-gradient: linear-gradient(144deg, #f59e0b, #b45309 50%, #fcd34d);
+      }
+
+      html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+      }
+
+      body {
+        background: linear-gradient(to bottom, var(--gradient-start), var(--gradient-end)), var(--bg-color);
+        font-family: ui-sans-serif, system-ui, sans-serif;
+        color: var(--text-color);
+        transition: all 0.3s ease;
+        display: flex;
+        flex-direction: column;
+      }
+
+      #particles {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: 0;
+      }
+
+      header {
+        background: var(--secondary-bg);
+        position: relative;
+        overflow: hidden;
+        z-index: 10;
+        flex: none;
+      }
+
+      header::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, var(--accent-light) 10%, transparent 50%);
+        opacity: 0.2;
+        animation: pulse 10s infinite ease-in-out;
+      }
+
+      main {
+        flex: 1;
+        display: flex;
+        flex-direction: row;
+        overflow: hidden;
+        position: relative;
+      }
+
+      .chat-container {
+        background: var(--secondary-bg);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        border-radius: 1rem;
+        transition: width 0.5s ease, height 0.5s ease;
+        z-index: 10;
+        width: 100%;
+        height: 100%; /* Full height initially */
+        display: flex;
+        flex-direction: column;
+      }
+
+      .chat-container.preview-active {
+        width: 50%; /* Adjust width on large screens */
+      }
+
+      .chat-messages {
+        padding: 1rem sm:p-1.5rem;
+        flex: 1;
+        overflow-y: auto;
+      }
+
+      .chat-messages > div {
+        opacity: 0;
+        animation: slideIn 0.5s ease forwards;
+      }
+
+      .chat-messages .bg-accent-100 {
+        padding: 0.75rem sm:p-1rem;
+        border-radius: 0.75rem;
+        max-width: 85%;
+        background: linear-gradient(135deg, var(--accent-light), var(--accent-color));
+        color: #fff;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      }
+
+      .chat-messages .bot-message {
+        padding: 0.75rem sm:p-1rem;
+        border-radius: 0.75rem;
+        max-width: 85%;
+        background: rgba(var(--accent-color-rgb, 139, 92, 246), 0.1);
+        border: 2px solid var(--accent-light);
+        box-shadow: 0 0 10px var(--accent-light);
+        animation: glow 2s ease-in-out infinite;
+      }
+
+      @keyframes glow {
+        0%, 100% { box-shadow: 0 0 10px var(--accent-light); }
+        50% { box-shadow: 0 0 20px var(--accent-light); }
+      }
+
+      .chat-input {
+        background: var(--secondary-bg);
+        border-top: 1px solid var(--border-color);
+        padding: 0.75rem sm:p-1rem;
+        flex: none;
+      }
+
+      .chat-input input {
+        background: var(--secondary-bg);
+        border: 1px solid var(--border-color);
+        transition: all 0.3s ease;
+      }
+
+      .chat-input input:focus {
+        border-color: var(--accent-color);
+        box-shadow: 0 0 8px var(--accent-light);
+      }
+
+      .preview-container {
+        background: var(--bg-color);
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 50%;
+        height: 100%;
+        transform: translateX(100%);
+        transition: transform 0.5s ease;
+        z-index: 10;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .preview-container.visible {
+        transform: translateX(0);
+      }
+
+      [data-theme="light"] .preview-container {
+        padding: 4px sm:p-5px;
+        background: var(--light-border-gradient);
+        border-radius: 20px 0 0 20px;
+        animation: gradientRotate 8s linear infinite;
+      }
+
+      [data-theme="dark"] .preview-container {
+        padding: 4px sm:p-5px;
+        background: var(--dark-border-gradient);
+        border-radius: 20px 0 0 20px;
+        animation: gradientRotate 6s linear infinite;
+      }
+
+      .preview-content {
+        background: var(--secondary-bg);
+        border-radius: 17px 0 0 17px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        position: relative;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+      }
+
+      [data-theme="dark"] .preview-content h1,
+      [data-theme="dark"] .preview-content p {
+        text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+      }
+
+      [data-theme="light"] .preview-content h1,
+      [data-theme="light"] .preview-content p {
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+      }
+
+      .preview-content:hover {
+        transform: scale(1.02);
+      }
+
+      .btn-primary {
+        background: linear-gradient(135deg, var(--accent-color), var(--accent-light));
+        color: #fff;
+        border-radius: 0.5rem;
+        padding: 0.5rem 1rem sm:p-0.75rem sm:p-1.5rem;
+        transition: all 0.3s ease, transform 0.2s ease;
+        display: inline-flex; /* Align items in a row */
+        align-items: center; /* Center items vertically */
+      }
+
+      .btn-primary:hover {
+        background: var(--accent-dark);
+        box-shadow: 0 4px 15px var(--accent-light);
+        transform: translateY(-2px); /* Slight lift effect on hover */
+      }
+
+      .btn-primary i {
+        font-size: 1.2rem; /* Increase icon size */
+      }
+
+      #hamburger-menu {
+        background: var(--secondary-bg);
+        transition: transform 0.3s ease-in-out, opacity 0.3s ease;
+        opacity: 0;
+        z-index: 20;
+      }
+
+      #hamburger-menu.open {
+        transform: translateX(0);
+        opacity: 1;
+      }
+
+      .menu-item:hover {
+        background: var(--accent-light);
+        transform: translateX(5px);
+      }
+
+      @keyframes pulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+      }
+
+      @keyframes slideIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+
+      @keyframes gradientRotate {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+      }
+
+      [data-theme="light"] .preview-container,
+      [data-theme="dark"] .preview-container {
+        background-size: 200% 200%;
+      }
+
+      /* Responsive Adjustments */
+      @media (max-width: 1024px) {
+        main {
+          flex-direction: column;
+        }
+        .chat-container {
+          width: 100%;
+          height: 100vh; /* Full height initially */
+        }
+        .chat-container.preview-active {
+          height: 50vh; /* Adjust height when preview is active */
+        }
+        .preview-container {
+          position: absolute;
+          top: 50%;
+          width: 100%;
+          height: 50vh;
+          transform: translateX(100%);
+          border-radius: 0 0 20px 20px; /* Rounded bottom on mobile */
+        }
+        .preview-content {
+          border-radius: 0 0 17px 17px;
+        }
+        .preview-container.visible {
+          transform: translateX(0);
+        }
+        #hamburger-menu {
+          transform: translateX(100%);
+          width: 100%;
+          max-width: 300px;
+        }
+        .chat-messages, .preview-content {
+          padding: 1rem;
+        }
+      }
+
+      @media (max-width: 640px) {
+        header nav {
+          padding: 0.5rem;
+        }
+        .chat-messages, .preview-content {
+          padding: 0.75rem;
+        }
+        .chat-input input {
+          padding: 0.5rem 2.5rem 0.5rem 0.75rem;
+          font-size: 0.875rem;
+        }
+        .btn-primary {
+          padding: 0.5rem 1rem;
+        }
+      }
+    </style>
+  </head>
+  <body data-mode="portfolio" data-theme="light">
+    <canvas id="particles"></canvas>
+
+    <header class="shadow-sm">
+      <nav class="max-w-7xl mx-auto px-2 sm:px-4 py-2 flex justify-between items-center relative z-10">
+        <div class="flex items-center">
+          <i class="fas fa-pen-fancy text-xl sm:text-2xl text-[var(--accent-color)] mr-2 animate-pulse"></i>
+          <span class="text-lg sm:text-xl font-semibold text-[var(--text-color)]">Content Creator AI</span>
+        </div>
+        <div class="flex items-center gap-2 sm:gap-3">
+          <button class="p-1 sm:p-2 text-[var(--text-color)] hover:bg-[var(--accent-light)] rounded-lg" onclick="toggleTheme()">
+            <i id="theme-icon" class="fas fa-moon"></i>
+          </button>
+          <button class="p-1 sm:p-2 text-[var(--text-color)] hover:bg-[var(--accent-light)] rounded-lg" onclick="toggleHamburger()">
+            <i class="fas fa-bars"></i>
+          </button>
+        </div>
+      </nav>
+    </header>
+
+    <div id="hamburger-menu" class="fixed top-0 right-0 h-full w-64 shadow-lg transform translate-x-full">
+      <div class="p-4 flex justify-between items-center border-b border-[var(--border-color)]">
+        <span class="text-lg font-semibold text-[var(--text-color)]">Options</span>
+        <button onclick="toggleHamburger()" class="p-2 text-[var(--text-color)] hover:bg-[var(--accent-light)] rounded-lg">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <div class="p-4 space-y-4">
+        <button onclick="changeMode('portfolio')" class="menu-item w-full text-left p-2 rounded-lg text-[var(--text-color)] transition-all">
+          <i class="fas fa-briefcase mr-2"></i> Portfolio
+        </button>
+        <button onclick="changeMode('resume')" class="menu-item w-full text-left p-2 rounded-lg text-[var(--text-color)] transition-all">
+          <i class="fas fa-file-alt mr-2"></i> Resume
+        </button>
+        <button onclick="changeMode('cover-letter')" class="menu-item w-full text-left p-2 rounded-lg text-[var(--text-color)] transition-all">
+          <i class="fas fa-envelope mr-2"></i> Cover Letter
+        </button>
+        <button onclick="togglePreview()" class="menu-item w-full text-left p-2 rounded-lg text-[var(--text-color)] transition-all">
+          <i class="fas fa-eye mr-2"></i> Show Live Preview
+        </button>
+      </div>
+    </div>
+
+    <main>
+      <div class="chat-container">
+        <div class="chat-messages"></div>
+        <div class="chat-input">
+          <div class="max-w-3xl mx-auto">
+            <div class="relative">
+              <input
+                id="chat-input"
+                type="text"
+                placeholder="Type your message..."
+                class="w-full rounded-2xl px-4 py-3 pr-10 sm:pr-32 focus:outline-none text-[var(--text-color)]"
+                onkeydown="if(event.key === 'Enter') appendContent()"
+              />
+              <div class="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-2">
+                <button class="p-2 text-[var(--text-color)] hover:text-[var(--accent-color)]" onclick="appendContent()">
+                  <i class="fas fa-paper-plane"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="preview-container" class="preview-container">
+        <div class="flex-1 overflow-y-auto p-4 sm:p-6">
+          <div class="preview-content p-4 sm:p-6 max-w-2xl mx-auto">
+            <h1 id="preview-title" class="text-xl sm:text-2xl font-bold text-[var(--text-color)] mb-4 animate-slideIn">Jane Doe’s Portfolio</h1>
+            <div id="preview-items" class="text-[var(--text-color)] opacity-90"></div>
+          </div>
+        </div>
+        <div class="p-2 sm:p-4 bg-[var(--secondary-bg)] border-t border-[var(--border-color)] flex justify-end">
+          <button class="btn-primary flex items-center gap-2">
+            <i class="fas fa-file-pdf"></i> Export as PDF
+          </button>
+        </div>
+      </div>
+    </main>
+
+    <script>
+      const canvas = document.getElementById('particles');
+      const ctx = canvas.getContext('2d');
+      let particles = [];
+
+      function resizeCanvas() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+      }
+
+      window.addEventListener('resize', resizeCanvas);
+      resizeCanvas();
+
+      class Particle {
+        constructor() {
+          this.x = Math.random() * canvas.width;
+          this.y = Math.random() * canvas.height;
+          this.size = Math.random() * 3 + 1;
+          this.speedX = Math.random() * 1 - 0.5;
+          this.speedY = Math.random() * 1 - 0.5;
+          this.color = getParticleColor();
+        }
+
+        update() {
+          this.x += this.speedX;
+          this.y += this.speedY;
+          if (this.x < 0 || this.x > canvas.width) this.speedX *= -1;
+          if (this.y < 0 || this.y > canvas.height) this.speedY *= -1;
+        }
+
+        draw() {
+          ctx.fillStyle = this.color;
+          ctx.beginPath();
+          ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+
+      function getParticleColor() {
+        const mode = document.body.getAttribute('data-mode');
+        const theme = document.body.getAttribute('data-theme');
+        if (theme === 'dark') {
+          return mode === 'portfolio' ? '#af40ff' :
+                 mode === 'resume' ? '#10b981' :
+                 '#f59e0b';
+        } else {
+          return mode === 'portfolio' ? '#8b5cf6' :
+                 mode === 'resume' ? '#10b981' :
+                 '#f59e0b';
+        }
+      }
+
+      function initParticles() {
+        particles = [];
+        const particleCount = Math.min(window.innerWidth / 10, 100);
+        for (let i = 0; i < particleCount; i++) {
+          particles.push(new Particle());
+        }
+      }
+
+      function animateParticles() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        for (let i = 0; i < particles.length; i++) {
+          particles[i].update();
+          particles[i].draw();
+        }
+        requestAnimationFrame(animateParticles);
+      }
+
+      initParticles();
+      animateParticles();
+
+      function updateAccentRGB() {
+        const color = getComputedStyle(document.documentElement).getPropertyValue('--accent-color').trim();
+        const rgb = color.match(/\d+/g).map(Number);
+        document.documentElement.style.setProperty('--accent-color-rgb', rgb.join(', '));
+      }
+
+      function toggleHamburger() {
+        const menu = document.getElementById('hamburger-menu');
+        menu.classList.toggle('open');
+      }
+
+      function togglePreview() {
+        const preview = document.getElementById('preview-container');
+        const chatContainer = document.querySelector('.chat-container');
+        const isVisible = preview.classList.contains('visible');
+        preview.classList.toggle('visible');
+        chatContainer.classList.toggle('preview-active');
+        updateBotMessageForPreview(!isVisible);
+        toggleHamburger();
+      }
+
+      function updateBotMessageForPreview(isVisible) {
+        const chatMessages = document.querySelector('.chat-messages');
+        const mode = document.body.getAttribute('data-mode');
+        const botMessageDiv = document.createElement('div');
+        botMessageDiv.className = 'flex items-start max-w-3xl';
+        botMessageDiv.style.animationDelay = '0.4s';
+        botMessageDiv.innerHTML = `
+          <div class="flex-shrink-0">
+            <div class="w-8 h-8 rounded-full bg-[var(--accent-color)] flex items-center justify-center animate-pulse">
+              <i class="fas fa-robot text-white"></i>
+            </div>
+          </div>
+          <div class="ml-3 bot-message p-4">
+            <p class="text-[var(--text-color)]">
+              ${isVisible ? 'Live preview is now visible!' : 'Live preview is hidden. Type "show preview" or use the menu to see it again!'}
+            </p>
+          </div>
+        `;
+        chatMessages.appendChild(botMessageDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+      }
+
+      function changeMode(mode) {
+        document.body.setAttribute('data-mode', mode);
+        const chatMessages = document.querySelector('.chat-messages');
+        const title = document.getElementById('preview-title');
+        const preview = document.getElementById('preview-container');
+        chatMessages.innerHTML = `
+          <div class="flex items-start max-w-3xl">
+            <div class="flex-shrink-0">
+              <div class="w-8 h-8 rounded-full bg-[var(--accent-color)] flex items-center justify-center animate-pulse">
+                <i class="fas fa-robot text-white"></i>
+              </div>
+            </div>
+            <div class="ml-3 bot-message p-4">
+              <p class="text-[var(--text-color)]">
+                Welcome to Content Creator AI! I’m here to craft stunning ${mode.replace('-', ' ')}s. Type "show preview" or use the menu to see your live document!
+              </p>
+            </div>
+          </div>
+        `;
+        if (mode === 'resume') title.textContent = "Jane Doe’s Resume";
+        else if (mode === 'cover-letter') title.textContent = "Jane Doe’s Cover Letter";
+        else title.textContent = "Jane Doe’s Portfolio";
+        preview.classList.remove('visible');
+        document.querySelector('.chat-container').classList.remove('preview-active');
+        toggleHamburger();
+        updateAccentRGB();
+        initParticles();
+      }
+
+      function toggleTheme() {
+        const body = document.body;
+        const themeIcon = document.getElementById('theme-icon');
+        const currentTheme = body.getAttribute('data-theme');
+        if (currentTheme === 'light') {
+          body.setAttribute('data-theme', 'dark');
+          themeIcon.classList.remove('fa-moon');
+          themeIcon.classList.add('fa-sun');
+        } else {
+          body.setAttribute('data-theme', 'light');
+          themeIcon.classList.remove('fa-sun');
+          themeIcon.classList.add('fa-moon');
+        }
+        updateAccentRGB();
+        initParticles();
+      }
+
+      function appendContent() {
+        const input = document.getElementById('chat-input');
+        const message = input.value.trim().toLowerCase();
+        if (!message) return;
+
+        const mode = document.body.getAttribute('data-mode');
+        const chatMessages = document.querySelector('.chat-messages');
+        const previewItems = document.getElementById('preview-items');
+        const preview = document.getElementById('preview-container');
+        const chatContainer = document.querySelector('.chat-container');
+
+        if (message === 'show preview') {
+          preview.classList.add('visible');
+          chatContainer.classList.add('preview-active');
+          updateBotMessageForPreview(true);
+        } else {
+          const userMessageDiv = document.createElement('div');
+          userMessageDiv.className = 'flex items-start max-w-3xl ml-auto';
+          userMessageDiv.style.animationDelay = '0.2s';
+          userMessageDiv.innerHTML = `
+            <div class="mr-3 bg-accent-100 p-4">${message}</div>
+            <div class="flex-shrink-0">
+              <div class="w-8 h-8 rounded-full bg-[var(--border-color)] flex items-center justify-center">
+                <i class="fas fa-user text-[var(--text-color)]"></i>
+              </div>
+            </div>
+          `;
+          chatMessages.appendChild(userMessageDiv);
+
+          if (preview.classList.contains('visible')) {
+            const contentItem = document.createElement('p');
+            contentItem.className = 'mt-2';
+            if (mode === 'portfolio') contentItem.innerHTML = `<strong>Project:</strong> ${message}`;
+            else if (mode === 'resume') contentItem.innerHTML = `<strong>Experience:</strong> ${message}`;
+            else contentItem.innerHTML = `${message}`;
+            previewItems.appendChild(contentItem);
+          }
+
+          const botMessageDiv = document.createElement('div');
+          botMessageDiv.className = 'flex items-start max-w-3xl';
+          botMessageDiv.style.animationDelay = '0.4s';
+          botMessageDiv.innerHTML = `
+            <div class="flex-shrink-0">
+              <div class="w-8 h-8 rounded-full bg-[var(--accent-color)] flex items-center justify-center animate-pulse">
+                <i class="fas fa-robot text-white"></i>
+              </div>
+            </div>
+            <div class="ml-3 bot-message p-4">
+              <p class="text-[var(--text-color)]">
+                Added "${message}" to your ${mode.replace('-', ' ')}. ${preview.classList.contains('visible') ? 'It’s now in the live preview!' : 'Type "show preview" to see it!'}
+              </p>
+            </div>
+          `;
+          chatMessages.appendChild(botMessageDiv);
+        }
+
+        input.value = '';
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+      }
+
+      updateAccentRGB();
+      changeMode('portfolio');
+    </script>
+  </body>
+</html>
